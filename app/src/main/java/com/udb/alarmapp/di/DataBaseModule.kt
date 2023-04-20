@@ -4,6 +4,8 @@ import android.content.Context
 
 import androidx.room.Room
 import com.udb.alarmapp.data.local.room.AlarmAppDataBase
+import com.udb.alarmapp.data.local.room.dao.AlarmDao
+import com.udb.alarmapp.data.local.room.dao.AlarmDateDao
 import com.udb.alarmapp.data.local.room.dao.MedicineDao
 import dagger.Module
 import dagger.Provides
@@ -25,6 +27,16 @@ class DataBaseModule {
     @Provides
     fun provideMedicineDao(alarmAppDataBase: AlarmAppDataBase): MedicineDao {
         return alarmAppDataBase.medicineDao()
+    }
+
+    @Provides
+    fun provideAlarmDao(alarmAppDataBase: AlarmAppDataBase): AlarmDao {
+        return alarmAppDataBase.alarmDao()
+    }
+
+    @Provides
+    fun provideAlarmDateDao(alarmAppDataBase: AlarmAppDataBase): AlarmDateDao {
+        return alarmAppDataBase.alarmDateDao()
     }
 
 }

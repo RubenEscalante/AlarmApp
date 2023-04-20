@@ -1,5 +1,6 @@
 package com.udb.alarmapp.data.local.model
 
+import com.udb.alarmapp.data.local.room.entities.MedicineEntity
 import java.util.*
 
 data class MedicineModel(

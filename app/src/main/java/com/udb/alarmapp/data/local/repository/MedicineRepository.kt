@@ -20,13 +20,19 @@ class MedicineRepository @Inject constructor(
         }
 
     suspend fun add(medicineModel: MedicineModel) {
-        medicineDao.addMedicine(
-            MedicineEntity(
-                id = medicineModel.id,
-                medicine = medicineModel.medicine,
-                stock = medicineModel.stock,
-                doctorName = medicineModel.doctorName
-            )
-        )
+        medicineDao.addMedicine(medicineModel.toMedicineEntity())
     }
+
+    suspend fun delete(medicineModel: MedicineModel) {
+        medicineDao.deleteMedicine(medicineModel.toMedicineEntity())
+    }
+}
+
+fun MedicineModel.toMedicineEntity(): MedicineEntity {
+    return MedicineEntity(
+        id = this.id,
+        medicine = this.medicine,
+        stock = this.stock,
+        doctorName = this.doctorName
+    )
 }

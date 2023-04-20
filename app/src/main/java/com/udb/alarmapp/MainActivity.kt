@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.ui.Modifier
 import com.udb.alarmapp.presentation.navigation.NavGraph
+import com.udb.alarmapp.presentation.screens.alarmscreen.AlarmViewModel
 import com.udb.alarmapp.presentation.screens.homescreen.HomeViewModel
 import com.udb.alarmapp.presentation.screens.medicinesScreen.MedicinesViewModel
 import com.udb.alarmapp.presentation.ui.theme.AlarmAppTheme
@@ -17,6 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModels()
     private val medicinesViewModel: MedicinesViewModel by viewModels()
+    private val alarmViewModel: AlarmViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -26,7 +28,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    NavGraph(homeViewModel, medicinesViewModel)
+                    NavGraph(homeViewModel, medicinesViewModel, alarmViewModel)
                 }
             }
         }

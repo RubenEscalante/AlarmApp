@@ -11,18 +11,19 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import com.udb.alarmapp.presentation.screens.alarmscreen.AlarmViewModel
 
 
 @Composable
-fun daysRow() {
-    val days = listOf("Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom")
+fun daysRow(alarmViewModel: AlarmViewModel) {
+    val daysList = listOf("Lun", "Mar", "Mie", "Jue", "Vie", "Sab", "Dom")
     val diasSeleccionados = remember { mutableStateListOf<String>() }
 
     LazyRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        items(days) { day ->
+        items(daysList) { day ->
             val textColor by animateColorAsState(
                 if (day in diasSeleccionados) Color.White else Color(
                     0xff312b63
@@ -42,6 +43,7 @@ fun daysRow() {
                     } else {
                         diasSeleccionados.add(day)
                     }
+                    alarmViewModel.changeDaysSelection(diasSeleccionados)
                 })
         }
     }
