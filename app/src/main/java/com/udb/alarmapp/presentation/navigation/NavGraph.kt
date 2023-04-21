@@ -72,12 +72,19 @@ fun NavGraph(
             composable(Screen.Home.route) {
                 HomeScreen(
                     homeViewModel,
-                    onNavigateToAlarm = {
-                        navController.navigate(Screen.Alarm.route)
-                    })
+                    medicinesViewModel,
+                    onNavigateToAlarm = { navController.navigate(Screen.Alarm.route) },
+                    onNavigateToMedicines = { navController.navigate(Screen.Medicine.route) }
+                )
             }
-            composable(Screen.Medicine.route) { MedicinesScreen(medicinesViewModel) }
-            composable(Screen.Alarm.route) { AlarmScreen(medicinesViewModel, alarmViewModel) }
+            composable(Screen.Medicine.route) { MedicinesScreen(medicinesViewModel, homeViewModel) }
+            composable(Screen.Alarm.route) {
+                AlarmScreen(
+                    medicinesViewModel,
+                    alarmViewModel,
+                    onNavigateToHome = { navController.navigate(Screen.Home.route) }
+                )
+            }
             composable(Screen.Record.route) { RecordScreen() }
         }
     }

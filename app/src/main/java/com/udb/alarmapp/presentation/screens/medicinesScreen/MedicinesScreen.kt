@@ -1,5 +1,8 @@
 package com.udb.alarmapp.presentation.screens.medicinesScreen
 
+import android.util.Log
+import android.view.Gravity
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -15,20 +18,26 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.udb.alarmapp.data.local.model.CompleteAlarmModel
 import com.udb.alarmapp.data.local.model.MedicineModel
+import com.udb.alarmapp.presentation.screens.alarmscreen.AlarmViewModel
+import com.udb.alarmapp.presentation.screens.homescreen.HomeViewModel
+import kotlinx.coroutines.*
 
 @Composable
-fun MedicinesScreen(medicinesViewModel: MedicinesViewModel) {
+fun MedicinesScreen(medicinesViewModel: MedicinesViewModel, homeViewModel: HomeViewModel) {
     val myMedicines = medicinesViewModel.medicines.collectAsState(initial = emptyList())
+    val myAlarms = homeViewModel.alarms.collectAsState(initial = emptyList())
+
     var dialogState by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -59,21 +68,35 @@ fun MedicinesScreen(medicinesViewModel: MedicinesViewModel) {
             items(
                 myMedicines.value,
                 key = { it.id }) { medicine ->
-                cardMedicine(medicineModel = medicine) { medicinesViewModel.onDeleteMedicine(it) }
+                cardMedicine(
+                    medicineModel = medicine,
+                    myAlarms
+                ) { medicinesViewModel.onDeleteMedicine(it) }
             }
         }
     }
 }
 
 @Composable
-fun cardMedicine(medicineModel: MedicineModel, onDelete: (MedicineModel) -> Unit) {
+fun cardMedicine(
+    medicineModel: MedicineModel,
+    myAlarms: State<List<CompleteAlarmModel>>,
+    onDelete: (MedicineModel) -> Unit
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val hasAlarmList = myAlarms.value.map { alarm ->
+        alarm.medicines.any {
+            it.id == medicineModel.id
+        }
+    }
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp)
             .pointerInput(Unit) {
                 detectTapGestures(onLongPress = {
-
+                    //TODO Aca tengo un tapgestures, borrar o hacer algo
                 })
             }
     ) {
@@ -103,7 +126,22 @@ fun cardMedicine(medicineModel: MedicineModel, onDelete: (MedicineModel) -> Unit
             Icon(Icons.Default.Delete, contentDescription = "Delete Icon",
                 modifier = Modifier.pointerInput(Unit) {
                     detectTapGestures(onTap = {
-                        onDelete(medicineModel)
+
+                        if (hasAlarmList.isEmpty() || !hasAlarmList[0]) {
+
+                            onDelete(medicineModel)
+                        } else {
+                            Log.i("Ruben", hasAlarmList.toString())
+                            coroutineScope.launch {
+                                val toast = Toast.makeText(
+                                    context,
+                                    "Para poder eliminar este medicamento, es necesario primero eliminar todas las alarmas asociadas a él.",
+                                    Toast.LENGTH_LONG
+                                )
+                                toast.setGravity(Gravity.TOP, 0, 500)
+                                toast.show()
+                            }
+                        }
                     })
                 })
         }

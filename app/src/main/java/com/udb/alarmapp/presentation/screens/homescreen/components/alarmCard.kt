@@ -27,17 +27,25 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.udb.alarmapp.R
+import com.udb.alarmapp.data.local.model.CompleteAlarmModel
 import com.udb.alarmapp.presentation.screens.homescreen.HomeViewModel
 
 
 @Composable
-fun alarmCard(homeViewModel: HomeViewModel) {
-    val switchState: Boolean by homeViewModel.switchState.observeAsState(true)
+fun alarmCard(alarm: CompleteAlarmModel, homeViewModel: HomeViewModel) {
     var expanded by rememberSaveable { mutableStateOf(false) }
+    var isSwitched by rememberSaveable { mutableStateOf(false) }
     Card(
         modifier = Modifier
             .padding(horizontal = 22.dp, vertical = 6.dp)
             .clip(RoundedCornerShape(15.dp))
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        homeViewModel.deleteAlarm(alarm.id)
+                    }
+                )
+            }
     ) {
         Column(
             modifier = Modifier
@@ -45,7 +53,7 @@ fun alarmCard(homeViewModel: HomeViewModel) {
                 .animateContentSize()
         ) {
             Text(
-                text = "Lun,Mar,Mie",
+                text = alarm.days,
                 style = MaterialTheme.typography.subtitle2,
                 color = Color(0xffcac9d7),
                 modifier = Modifier
@@ -62,7 +70,7 @@ fun alarmCard(homeViewModel: HomeViewModel) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Column {
                         Text(
-                            text = "08:30",
+                            text = alarm.hour,
                             style = MaterialTheme.typography.h3,
                             color = Color(0xff312b63),
                             fontWeight = FontWeight(400)
@@ -73,13 +81,15 @@ fun alarmCard(homeViewModel: HomeViewModel) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Image(
-                            painter = painterResource(id = R.drawable.outline_dark_mode_24),
+                            painter = if (alarm.sunmoon == "sun") painterResource(id = R.drawable.outline_wb_sunny_24) else painterResource(
+                                id = R.drawable.outline_dark_mode_24
+                            ),
                             contentDescription = "Ícono de modo oscuro",
                             modifier = Modifier.size(34.dp)
 
                         )
                         Text(
-                            text = " AM", style = MaterialTheme.typography.h5,
+                            text = alarm.ampm, style = MaterialTheme.typography.h5,
                             color = Color(0xff312b63),
                             fontWeight = FontWeight(400)
                         )
@@ -89,8 +99,8 @@ fun alarmCard(homeViewModel: HomeViewModel) {
                 }
                 Box(Modifier.padding(end = 16.dp, bottom = 20.dp)) {
                     CustomSwitch(
-                        checked = switchState,
-                        onCheckedChange = { homeViewModel.onswitchStateChange(!switchState) })
+                        checked = isSwitched,
+                        onCheckedChange = { isSwitched = !isSwitched })
                 }
             }
             Column(
@@ -142,13 +152,7 @@ fun alarmCard(homeViewModel: HomeViewModel) {
                             .verticalScroll(rememberScrollState())
                             .padding(start = 20.dp)
                     ) {
-
-                        medicCard()
-                        medicCard()
-                        medicCard()
-                        medicCard()
-                        medicCard()
-
+                        medicList(alarm.medicines)
                     }
                 }
             }

@@ -1,11 +1,12 @@
 package com.udb.alarmapp.presentation.screens.alarmscreen
 
-import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.udb.alarmapp.data.local.model.AlarmDateModel
+import com.udb.alarmapp.data.local.model.AlarmMedicineModel
 import com.udb.alarmapp.data.local.model.AlarmModel
 import com.udb.alarmapp.data.local.model.MedicineModel
 import com.udb.alarmapp.domain.usecases.AddAlarmUseCase
@@ -20,13 +21,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlarmViewModel @Inject constructor(
-    private val addAlarmUseCase: AddAlarmUseCase,
+    private val addAlarmUseCase: AddAlarmUseCase
 ) : ViewModel() {
 
+
+    private val _selectedMedicines = MutableLiveData<List<MedicineModel>>(emptyList())
+    val selectedMedicines: LiveData<List<MedicineModel>>
+        get() = _selectedMedicines
+
     private var _dates = mutableListOf<String>()
-    private var _medicines: List<MedicineModel> = emptyList()
     private var _hour: String = ""
     private var _ampm: String = ""
+    private var _sunmoon: String = ""
     private var _days = mutableListOf<String>()
 
     fun getToday(): String {
@@ -48,9 +54,7 @@ class AlarmViewModel @Inject constructor(
 
         val calendar = Calendar.getInstance()
         val currentDate = calendar.time
-
         val dates = mutableListOf<String>()
-
         for (dayOfWeek in selectedDays) {
             val dayOfWeekNumber = when (dayOfWeek) {
                 "Dom" -> Calendar.SUNDAY
@@ -74,7 +78,7 @@ class AlarmViewModel @Inject constructor(
     fun addHour(snappedTime: String) {
         _hour = snappedTime
         _ampm = getAmPm(snappedTime)
-
+        _sunmoon =  getSunOrMoon(snappedTime)
     }
 
     private fun orderDays(diasSeleccionados: SnapshotStateList<String>): MutableList<String> {
@@ -93,23 +97,52 @@ class AlarmViewModel @Inject constructor(
         val hour = time.hour
         return if (hour < 12) "AM" else "PM"
     }
+    fun getSunOrMoon(hourString: String): String {
+        val time = LocalTime.parse(hourString, DateTimeFormatter.ofPattern("HH:mm"))
+        val hour = time.hour
+        return if (hour in 5..17) "sun" else "moon"
+    }
 
     fun addAlarm() {
         val alarm = AlarmModel(
             hour = _hour,
             ampm = _ampm,
+            sunmoon = _sunmoon,
             days = _days.toString()
         )
         val alarmDates = _dates.map {
             AlarmDateModel(alarmid = alarm.id, date = it)
         }.toMutableList()
-////        alarm.dates = alarmDates
-        viewModelScope.launch {
-            addAlarmUseCase(
-                alarm,
-                alarmDates
+        val medicineList = _selectedMedicines.value?.map {
+            AlarmMedicineModel(
+                alarmId = alarm.id,
+                medicinesId = it.id
             )
         }
-
+        clearScreenState()
+        viewModelScope.launch {
+            if (medicineList != null) {
+                addAlarmUseCase(
+                    alarm,
+                    alarmDates,
+                    medicineList
+                )
+            }
+        }
     }
+
+    fun updateSelectedMedicines(isChecked: Boolean, medicine: MedicineModel) {
+        val selectedAlarms = _selectedMedicines.value?.toMutableList() ?: mutableListOf()
+        if (isChecked) {
+            selectedAlarms.add(medicine)
+        } else {
+            selectedAlarms.remove(medicine)
+        }
+        _selectedMedicines.value = selectedAlarms
+    }
+
+    fun clearScreenState() {
+        _selectedMedicines.value = emptyList()
+    }
+
 }

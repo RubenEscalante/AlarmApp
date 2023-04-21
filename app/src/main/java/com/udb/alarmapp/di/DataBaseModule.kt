@@ -6,6 +6,7 @@ import androidx.room.Room
 import com.udb.alarmapp.data.local.room.AlarmAppDataBase
 import com.udb.alarmapp.data.local.room.dao.AlarmDao
 import com.udb.alarmapp.data.local.room.dao.AlarmDateDao
+import com.udb.alarmapp.data.local.room.dao.AlarmMedicineDao
 import com.udb.alarmapp.data.local.room.dao.MedicineDao
 import dagger.Module
 import dagger.Provides
@@ -20,7 +21,7 @@ class DataBaseModule {
     @Provides
     @Singleton
     fun provideAlarmDataBase(@ApplicationContext appContext: Context): AlarmAppDataBase {
-        return Room.databaseBuilder(appContext, AlarmAppDataBase::class.java, "AlarmAppDataBase")
+        return Room.databaseBuilder(appContext, AlarmAppDataBase::class.java, "12AlarmAppDataBase")
             .build()
     }
 
@@ -37,6 +38,11 @@ class DataBaseModule {
     @Provides
     fun provideAlarmDateDao(alarmAppDataBase: AlarmAppDataBase): AlarmDateDao {
         return alarmAppDataBase.alarmDateDao()
+    }
+
+    @Provides
+    fun provideAlarmMedicineDao(alarmAppDataBase: AlarmAppDataBase): AlarmMedicineDao {
+        return alarmAppDataBase.alarmMedicineDao()
     }
 
 }

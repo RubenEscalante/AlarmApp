@@ -13,6 +13,7 @@ data class AlarmEntity(
     val id: String,
     var hour: String,
     var ampm: String,
+    var sunmoon: String,
     var days: String,
 )
 

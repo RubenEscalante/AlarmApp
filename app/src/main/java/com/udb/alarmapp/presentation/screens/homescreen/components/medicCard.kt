@@ -8,11 +8,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.udb.alarmapp.data.local.model.MedicineModel
 
 @Composable
-fun medicCard(){
+fun medicCard(medicines: MedicineModel) {
     Text(
-        text = "Paracetamol 500mg",
+        text = medicines.medicine,
         style = MaterialTheme.typography.body1,
         color = Color(0xff312b63),
         modifier = Modifier
