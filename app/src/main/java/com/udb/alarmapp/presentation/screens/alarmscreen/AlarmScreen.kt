@@ -1,22 +1,36 @@
 package com.udb.alarmapp.presentation.screens.alarmscreen
 
+import android.annotation.SuppressLint
+import android.os.Build
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import com.udb.alarmapp.data.local.model.MedicineModel
 import com.udb.alarmapp.presentation.components.TimeFormat
 import com.udb.alarmapp.presentation.components.WheelTimePicker
 import com.udb.alarmapp.presentation.screens.alarmscreen.components.daysRow
 import com.udb.alarmapp.presentation.screens.medicinesScreen.MedicinesViewModel
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
+import java.util.Calendar
+import java.util.TimeZone
 
 
 @Composable
@@ -117,13 +131,61 @@ fun medicineCard(medicine: MedicineModel, alarmViewModel: AlarmViewModel) {
 
 }
 
+@SuppressLint("UnrememberedMutableState")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun calendar() {
-    Icon(Icons.Default.DateRange, contentDescription = "Calendar Icon")
+    val openDialog = remember { mutableStateOf(false) }
+
+    if (openDialog.value) {
+        val datePickerState = rememberDatePickerState()
+        val confirmEnabled = derivedStateOf { datePickerState.selectedDateMillis != null }
+        DatePickerDialog(
+            onDismissRequest = {
+                openDialog.value = false
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        openDialog.value = false
+
+//                                "Selected date timestamp: ${datePickerState.selectedDateMillis}"
+
+
+                    },
+                    enabled = confirmEnabled.value
+                ) {
+                    Text(text = "Seleccionar")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        openDialog.value = false
+                    }
+                ) {
+                    Text(text = "Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState, dateValidator = { utcDateInMills ->
+                val currentDate =
+                    LocalDate.now() // Obtiene la fecha actual en la zona horaria predeterminada
+                val dateToBlock = Instant.ofEpochMilli(utcDateInMills).atZone(ZoneId.of("UTC"))
+                    .toLocalDate()
+                dateToBlock >= currentDate
+            })
+        }
+    }
+    Icon(Icons.Default.DateRange, contentDescription = "Calendar Icon", modifier = Modifier.pointerInput(Unit){
+        detectTapGestures(onTap = {
+            openDialog.value = true
+        })
+    })
 }
 
 @Composable
 fun daysState(alarmViewModel: AlarmViewModel) {
-    Text(text = "Hoy, " + alarmViewModel.getToday())
+    Text(text = "" + alarmViewModel.selectedDaysFormat.observeAsState().value)
 }
 

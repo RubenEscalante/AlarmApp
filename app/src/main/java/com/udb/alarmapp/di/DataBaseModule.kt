@@ -21,7 +21,7 @@ class DataBaseModule {
     @Provides
     @Singleton
     fun provideAlarmDataBase(@ApplicationContext appContext: Context): AlarmAppDataBase {
-        return Room.databaseBuilder(appContext, AlarmAppDataBase::class.java, "12AlarmAppDataBase")
+        return Room.databaseBuilder(appContext, AlarmAppDataBase::class.java, "13AlarmAppDataBase")
             .build()
     }
 

@@ -97,6 +97,10 @@ fun cardMedicine(
             .pointerInput(Unit) {
                 detectTapGestures(onLongPress = {
                     //TODO Aca tengo un tapgestures, borrar o hacer algo
+                    //TODO Cambiar iconos de la navigationbar
+                    //TODO Arreglar diseno de medicinas
+                    //Todo Agregar Update al crud
+                    //Todo Mejorar Codigo
                 })
             }
     ) {

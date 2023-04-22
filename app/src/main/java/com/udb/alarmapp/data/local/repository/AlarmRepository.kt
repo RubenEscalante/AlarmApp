@@ -35,7 +35,7 @@ class AlarmRepository @Inject constructor(
                     formatTimeTo12HourFormat(firstAlarm.hour),
                     firstAlarm.ampm,
                     firstAlarm.sunmoon,
-                    formatDaysToNormalString(firstAlarm.days),
+                    firstAlarm.days,
                     alarms.map {
                         MedicineModel(
                             id = it.medicineId,
@@ -85,9 +85,9 @@ class AlarmRepository @Inject constructor(
     }
 }
 
-private fun formatDaysToNormalString(days: String): String {
-    return days.replace("[", "").replace("]", "")
-}
+//private fun formatDaysToNormalString(days: String): String {
+//    return days.replace("[", "").replace("]", "")
+//}
 
 fun AlarmModel.toAlarmEntity(): AlarmEntity {
     return AlarmEntity(

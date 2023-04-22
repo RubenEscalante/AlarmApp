@@ -1,5 +1,6 @@
 package com.udb.alarmapp.presentation.screens.alarmscreen
 
+import android.util.Log
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -29,11 +30,17 @@ class AlarmViewModel @Inject constructor(
     val selectedMedicines: LiveData<List<MedicineModel>>
         get() = _selectedMedicines
 
-    private var _dates = mutableListOf<String>()
+    private val _selectedDays = MutableLiveData(listOf(assingDays()))
+    val selectedDays: LiveData<List<String>>
+        get() = _selectedDays
+    private var _selectedDaysFormat = MutableLiveData(assingDays())
+    val selectedDaysFormat: LiveData<String>
+        get() = _selectedDaysFormat
+
+    private var _dates = mutableListOf(getToday())
     private var _hour: String = ""
     private var _ampm: String = ""
     private var _sunmoon: String = ""
-    private var _days = mutableListOf<String>()
 
     fun getToday(): String {
         val today = LocalDate.now()
@@ -42,12 +49,21 @@ class AlarmViewModel @Inject constructor(
     }
 
     fun changeDaysSelection(diasSeleccionados: SnapshotStateList<String>) {
-        _days = orderDays(diasSeleccionados)
-        if (_days.isNotEmpty()) {
-            _dates = getDatesFromSelectedDays(_days).toMutableList()
+        _selectedDays.value = orderDays(diasSeleccionados)
+        if ((_selectedDays.value as MutableList<String>).isNotEmpty()) {
+            _dates =
+                getDatesFromSelectedDays(_selectedDays.value as MutableList<String>) as MutableList<String>
+            if ((_selectedDays.value as MutableList<String>).size == 7) {
+                _selectedDays.value = listOf("Diariamente")
+            }
         } else {
-            _days.add(getToday())
+            _selectedDays.value = listOf(assingDays())
         }
+        _selectedDaysFormat.value = returnStateSelectedDaysFormat()
+    }
+
+    fun assingDays(): String {
+        return "Hoy"
     }
 
     private fun getDatesFromSelectedDays(selectedDays: MutableList<String>): List<String> {
@@ -78,7 +94,7 @@ class AlarmViewModel @Inject constructor(
     fun addHour(snappedTime: String) {
         _hour = snappedTime
         _ampm = getAmPm(snappedTime)
-        _sunmoon =  getSunOrMoon(snappedTime)
+        _sunmoon = getSunOrMoon(snappedTime)
     }
 
     private fun orderDays(diasSeleccionados: SnapshotStateList<String>): MutableList<String> {
@@ -97,18 +113,29 @@ class AlarmViewModel @Inject constructor(
         val hour = time.hour
         return if (hour < 12) "AM" else "PM"
     }
+
     fun getSunOrMoon(hourString: String): String {
         val time = LocalTime.parse(hourString, DateTimeFormatter.ofPattern("HH:mm"))
         val hour = time.hour
         return if (hour in 5..17) "sun" else "moon"
     }
 
+    private fun returnStateSelectedDaysFormat(): String {
+        return _selectedDays.value.toString().replace("[", "").replace("]", "")
+    }
+
     fun addAlarm() {
+        if (_selectedDays.value.isNullOrEmpty()) {
+            _selectedDays.value = listOf("Hoy")
+            Log.i("Ruben antes del add", _dates.toString())
+            _dates = listOf(getToday()) as MutableList<String>
+            Log.i("Ruben despues del add", _dates.toString())
+        }
         val alarm = AlarmModel(
             hour = _hour,
             ampm = _ampm,
             sunmoon = _sunmoon,
-            days = _days.toString()
+            days = returnStateSelectedDaysFormat()
         )
         val alarmDates = _dates.map {
             AlarmDateModel(alarmid = alarm.id, date = it)
@@ -143,6 +170,9 @@ class AlarmViewModel @Inject constructor(
 
     fun clearScreenState() {
         _selectedMedicines.value = emptyList()
+        _selectedDays.value = emptyList()
+        _dates = emptyList<String>().toMutableList()
+        _selectedDaysFormat.value = assingDays()
     }
 
 }
