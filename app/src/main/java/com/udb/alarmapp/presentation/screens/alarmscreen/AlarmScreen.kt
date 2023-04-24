@@ -1,7 +1,8 @@
 package com.udb.alarmapp.presentation.screens.alarmscreen
 
 import android.annotation.SuppressLint
-import android.os.Build
+import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -25,24 +26,32 @@ import com.udb.alarmapp.presentation.components.TimeFormat
 import com.udb.alarmapp.presentation.components.WheelTimePicker
 import com.udb.alarmapp.presentation.screens.alarmscreen.components.daysRow
 import com.udb.alarmapp.presentation.screens.medicinesScreen.MedicinesViewModel
-import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.Calendar
-import java.util.TimeZone
-
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun AlarmScreen(
     medicinesViewModel: MedicinesViewModel,
     alarmViewModel: AlarmViewModel,
+    alarmId: String?,
     onNavigateToHome: () -> Unit
 ) {
-    val myAlarms = alarmViewModel.selectedMedicines.observeAsState(initial = emptyList())
+    val context = LocalContext.current
+    val myAlarms by alarmViewModel.selectedMedicines.observeAsState(initial = emptyList())
+    val ondufg by alarmViewModel.onUpdateAlarm.collectAsState()
+    val hourFlow by alarmViewModel.hour.observeAsState()
+    val onUpdate by alarmViewModel.onUpdate.collectAsState()
     val myMedicines = medicinesViewModel.medicines.collectAsState(initial = emptyList())
     val enableButton = remember { mutableStateOf(false) }
-    enableButton.value = myAlarms.value.isNotEmpty()
+    enableButton.value = myAlarms.isNotEmpty()
+    LaunchedEffect(key1 = true) {
+        alarmViewModel.setUpdateAlarm(alarmId)
+    }
+
+    Log.i("Ruben ver hora", myAlarms.toString())
 
     DisposableEffect(Unit) {
         onDispose {
@@ -60,11 +69,17 @@ fun AlarmScreen(
                 .height(240.dp),
             contentAlignment = Alignment.Center
         ) {
-            WheelTimePicker(timeFormat = TimeFormat.AM_PM) { snappedTime ->
-                alarmViewModel.addHour(snappedTime.toString())
+
+            hourFlow?.let {
+                WheelTimePicker(
+                    timeFormat = TimeFormat.AM_PM,
+                    startTime = it
+                ) { snappedTime ->
+                    alarmViewModel.addHour(snappedTime)
+                }
             }
         }
-        Column() {
+        Column(modifier = Modifier, verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -73,17 +88,19 @@ fun AlarmScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 daysState(alarmViewModel)
-                calendar()
+                calendar(alarmViewModel)
             }
             daysRow(alarmViewModel)
             selectionMedicine(myMedicines, alarmViewModel)
-            aditionalNotes()
-            Button(onClick = {
-                alarmViewModel.addAlarm()
+//            aditionalNotes()
+
+            Button(modifier= Modifier.width(150.dp).height(40.dp),onClick = {
+                alarmViewModel.addAlarm(onUpdate, alarmId)
                 enableButton.value = false
                 onNavigateToHome()
             }, enabled = enableButton.value) {
-                Text(text = "Agregar")
+                if (onUpdate)
+                    Text(text = "Actualizar") else Text(text = "Agregar")
             }
         }
 
@@ -96,7 +113,10 @@ fun aditionalNotes() {
 }
 
 @Composable
-fun selectionMedicine(myMedicines: State<List<MedicineModel>>, alarmViewModel: AlarmViewModel) {
+fun selectionMedicine(
+    myMedicines: State<List<MedicineModel>>,
+    alarmViewModel: AlarmViewModel
+) {
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Medicinas")
         LazyColumn {
@@ -111,7 +131,14 @@ fun selectionMedicine(myMedicines: State<List<MedicineModel>>, alarmViewModel: A
 
 @Composable
 fun medicineCard(medicine: MedicineModel, alarmViewModel: AlarmViewModel) {
+    val myAladrms by alarmViewModel.selectedMedicines.observeAsState()
     var isCheked = remember { mutableStateOf(false) }
+    myAladrms?.onEach { medi ->
+        Log.i("Ruben en medi", medi.toString())
+        if (medi == medicine.id) {
+            isCheked.value = true
+        }
+    }
     Row(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -134,7 +161,7 @@ fun medicineCard(medicine: MedicineModel, alarmViewModel: AlarmViewModel) {
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun calendar() {
+fun calendar(alarmViewModel: AlarmViewModel) {
     val openDialog = remember { mutableStateOf(false) }
 
     if (openDialog.value) {
@@ -148,10 +175,12 @@ fun calendar() {
                 TextButton(
                     onClick = {
                         openDialog.value = false
-
-//                                "Selected date timestamp: ${datePickerState.selectedDateMillis}"
-
-
+                        //TODO Arreglar calendario
+//                        datePickerState.selectedDateMillis?.let {
+//                            alarmViewModel.selectCalendarDate(
+//                                it
+//                            )
+//                        }
                     },
                     enabled = confirmEnabled.value
                 ) {
@@ -177,15 +206,18 @@ fun calendar() {
             })
         }
     }
-    Icon(Icons.Default.DateRange, contentDescription = "Calendar Icon", modifier = Modifier.pointerInput(Unit){
-        detectTapGestures(onTap = {
-            openDialog.value = true
+    Icon(
+        Icons.Default.DateRange,
+        contentDescription = "Calendar Icon",
+        modifier = Modifier.pointerInput(Unit) {
+            detectTapGestures(onTap = {
+                openDialog.value = true
+            })
         })
-    })
 }
 
 @Composable
 fun daysState(alarmViewModel: AlarmViewModel) {
-    Text(text = "" + alarmViewModel.selectedDaysFormat.observeAsState().value)
+    Text(text = "" + alarmViewModel.selectedDaysFormat.collectAsState().value)
 }
 

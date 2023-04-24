@@ -17,6 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.udb.alarmapp.presentation.screens.alarmscreen.AlarmScreen
 import com.udb.alarmapp.presentation.screens.alarmscreen.AlarmViewModel
 import com.udb.alarmapp.presentation.screens.homescreen.HomeScreen
@@ -74,16 +75,20 @@ fun NavGraph(
                     homeViewModel,
                     medicinesViewModel,
                     onNavigateToAlarm = { navController.navigate(Screen.Alarm.route) },
-                    onNavigateToMedicines = { navController.navigate(Screen.Medicine.route) }
+                    onNavigateToMedicines = { navController.navigate(Screen.Medicine.route) },
+                    onNavigateToAlarmUpdate = { alarmId: String -> navController.navigate("${Screen.Alarm.route}?alarmId=$alarmId") }
                 )
             }
             composable(Screen.Medicine.route) { MedicinesScreen(medicinesViewModel, homeViewModel) }
-            composable(Screen.Alarm.route) {
+            composable(
+                "${Screen.Alarm.route}?alarmId={alarmId}",
+                arguments = listOf(navArgument("alarmId") { nullable = true })
+            ) {
                 AlarmScreen(
                     medicinesViewModel,
                     alarmViewModel,
-                    onNavigateToHome = { navController.navigate(Screen.Home.route) }
-                )
+                    it.arguments?.getString("alarmId"),
+                ) { navController.navigate(Screen.Home.route) }
             }
             composable(Screen.Record.route) { RecordScreen() }
         }

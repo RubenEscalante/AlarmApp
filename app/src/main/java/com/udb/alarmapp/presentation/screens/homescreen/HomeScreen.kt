@@ -28,7 +28,8 @@ fun HomeScreen(
     homeViewModel: HomeViewModel,
     medicinesViewModel: MedicinesViewModel,
     onNavigateToAlarm: () -> Unit,
-    onNavigateToMedicines: () -> Unit
+    onNavigateToMedicines: () -> Unit,
+    onNavigateToAlarmUpdate: (String) -> Unit
 ) {
     val myMedicines = medicinesViewModel.medicines.collectAsState(initial = emptyList())
     val myAlarms = homeViewModel.alarms.collectAsState(initial = emptyList())
@@ -55,7 +56,9 @@ fun HomeScreen(
         }
         if (myMedicines.value.isEmpty()) {
             Column(
-                modifier = Modifier.fillMaxSize().padding(20.dp),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -106,7 +109,7 @@ fun HomeScreen(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     LazyColumn {
                         items(myAlarms.value, key = { it.id }) {
-                            alarmCard(it, homeViewModel)
+                            alarmCard(it, homeViewModel,onNavigateToAlarmUpdate)
                         }
                     }
                 }

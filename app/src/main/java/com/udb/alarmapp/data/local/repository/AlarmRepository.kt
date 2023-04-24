@@ -6,7 +6,6 @@ import com.udb.alarmapp.data.local.model.AlarmMedicineModel
 import com.udb.alarmapp.data.local.model.AlarmModel
 import com.udb.alarmapp.data.local.model.CompleteAlarmModel
 import com.udb.alarmapp.data.local.model.MedicineModel
-import com.udb.alarmapp.data.local.room.AlarmAppDataBase
 import com.udb.alarmapp.data.local.room.dao.AlarmDao
 import com.udb.alarmapp.data.local.room.dao.AlarmDateDao
 import com.udb.alarmapp.data.local.room.dao.AlarmMedicineDao
@@ -14,6 +13,7 @@ import com.udb.alarmapp.data.local.room.entities.AlarmDateEntity
 import com.udb.alarmapp.data.local.room.entities.AlarmEntity
 import com.udb.alarmapp.data.local.room.entities.AlarmMedicineEntity
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -26,6 +26,7 @@ class AlarmRepository @Inject constructor(
     private val alarmDateDao: AlarmDateDao,
     private val alarmMedicineDao: AlarmMedicineDao
 ) {
+
     val alarms: Flow<List<CompleteAlarmModel>> =
         alarmDao.getAlarms().map { items ->
             items.groupBy { it.id }.map { (_, alarms) ->
@@ -77,17 +78,42 @@ class AlarmRepository @Inject constructor(
         alarmMedicineDao.deleteAlarmMedicineById(alarmId = alarmId)
     }
 
+    @Transaction
+    suspend fun updateAlarmById(
+        alarmId: String,
+        alarmModel: AlarmModel,
+        alarmDates: MutableList<AlarmDateModel>,
+        medicineList: List<AlarmMedicineModel>
+    ) {
+        deleteAlarmById(alarmId)
+        val alarmDateEntityList: List<AlarmDateEntity> = alarmDates.map { it ->
+            AlarmDateEntity(it.id, alarmId, it.date)
+        }
+        alarmDateEntityList.forEach { date ->
+            alarmDateDao.addAlarmDate(date)
+        }
+
+        val alarmMedicineList: List<AlarmMedicineEntity> = medicineList.map {
+            AlarmMedicineEntity(it.id, it.alarmId, it.medicinesId)
+        }
+        alarmMedicineList.forEach { medicine ->
+            alarmMedicineDao.addAlarmMedine(medicine)
+        }
+        alarmDao.addAlarm(alarmModel.toAlarmEntity())
+
+    }
+
     private fun formatTimeTo12HourFormat(timeString: String): String {
         val format24 = SimpleDateFormat("HH:mm", Locale.getDefault())
         val format12 = SimpleDateFormat("hh:mm", Locale.getDefault())
         val time = format24.parse(timeString)
         return format12.format(time!!)
     }
-}
 
-//private fun formatDaysToNormalString(days: String): String {
-//    return days.replace("[", "").replace("]", "")
-//}
+    fun getCompleteAlarmById(alarmId: String): Flow<CompleteAlarmModel> {
+        return alarms.map { it -> it.firstOrNull { it.id == alarmId } }.filterNotNull()
+    }
+}
 
 fun AlarmModel.toAlarmEntity(): AlarmEntity {
     return AlarmEntity(

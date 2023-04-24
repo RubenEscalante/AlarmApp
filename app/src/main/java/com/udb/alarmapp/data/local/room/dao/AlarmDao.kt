@@ -4,8 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
+import androidx.room.Update
 import com.udb.alarmapp.data.local.model.AlarmQueryModel
 import com.udb.alarmapp.data.local.room.entities.AlarmEntity
+import com.udb.alarmapp.data.local.room.entities.AlarmMedicineEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -21,5 +23,7 @@ interface AlarmDao {
     @Query("DELETE FROM AlarmEntity WHERE id = :alarmId")
     suspend fun deleteAlarmById(alarmId: String)
 
+    @Update
+    suspend fun updateAlarm(item: AlarmEntity)
 
 }

@@ -11,7 +11,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -32,7 +31,11 @@ import com.udb.alarmapp.presentation.screens.homescreen.HomeViewModel
 
 
 @Composable
-fun alarmCard(alarm: CompleteAlarmModel, homeViewModel: HomeViewModel) {
+fun alarmCard(
+    alarm: CompleteAlarmModel,
+    homeViewModel: HomeViewModel,
+    onNavigateToAlarmUpdate: (String) -> Unit
+) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     var isSwitched by rememberSaveable { mutableStateOf(false) }
     Card(
@@ -43,6 +46,10 @@ fun alarmCard(alarm: CompleteAlarmModel, homeViewModel: HomeViewModel) {
                 detectTapGestures(
                     onLongPress = {
                         homeViewModel.deleteAlarm(alarm.id)
+
+
+                    }, onDoubleTap = {
+                        onNavigateToAlarmUpdate(alarm.id)
                     }
                 )
             }
