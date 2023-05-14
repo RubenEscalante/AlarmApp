@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -36,8 +37,7 @@ fun NavGraph(
     val navController = rememberNavController()
     val items = listOf(
         BottomBarScreen.Home,
-        BottomBarScreen.Medicine,
-        BottomBarScreen.Record
+        BottomBarScreen.Medicine
     )
     Scaffold(
         bottomBar = {
@@ -49,7 +49,7 @@ fun NavGraph(
                         label = { Text(text = screen.title) },
                         icon = {
                             Icon(
-                                imageVector = screen.icon,
+                                painter = painterResource(id = screen.icon),
                                 contentDescription = "Navigation Icon"
                             )
                         },

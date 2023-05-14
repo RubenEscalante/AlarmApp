@@ -6,6 +6,7 @@ data class AlarmQueryModel(
     val ampm: String,
     val sunmoon: String,
     val days: String,
+    val active: Boolean,
     val medicineId: String = "",
     val medicine: String,
     val stock: String,

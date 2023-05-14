@@ -1,5 +1,6 @@
 package com.udb.alarmapp.presentation.screens.homescreen
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,8 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.udb.alarmapp.data.local.model.RecordModel
 import com.udb.alarmapp.presentation.screens.homescreen.components.alarmCard
 import com.udb.alarmapp.presentation.screens.medicinesScreen.MedicinesViewModel
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun HomeScreen(
@@ -33,7 +38,36 @@ fun HomeScreen(
 ) {
     val myMedicines = medicinesViewModel.medicines.collectAsState(initial = emptyList())
     val myAlarms = homeViewModel.alarms.collectAsState(initial = emptyList())
+    val myDates = homeViewModel.dateList.collectAsState(initial = emptyList())
 
+    myDates.value.mapIndexed { index, it ->
+        // Parsea los strings de fecha y hora en un objeto Date
+        val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
+        val date = dateFormat.parse("${it.date} ${it.hour}")
+        // Calcula los milisegundos entre la fecha actual y la fecha futura
+        val now = Calendar.getInstance()
+        val future = Calendar.getInstance().apply { time = date }
+        val diffInMillis = future.timeInMillis - now.timeInMillis
+        val actualAlarm = myAlarms.value.first { alarm -> alarm.id == it.alarmid }
+        if (now.after(future)) {
+//            val actualAlarm = myAlarms.value.first { alarm -> alarm.id == it.alarmid }
+//            val record = RecordModel(
+//                alarmId = actualAlarm.id,
+//                date = it.date,
+//                hour = it.hour,
+//                medicines = actualAlarm.medicines.joinToString(separator = ",")
+//            )
+//            homeViewModel.addRecord(record)
+            // homeViewModel.deleteAlarm(it.alarmid)
+            Log.i("Ruben", "Ya paso")
+        } else {
+            homeViewModel.scheduleNotification(diffInMillis,
+                index,
+                "Tomar Medicamentos de las ${it.hour}",
+                actualAlarm.medicines.joinToString(separator = ", ") { r -> r.medicine })
+        }
+
+    }
 
     Column(
         modifier = Modifier
@@ -109,7 +143,7 @@ fun HomeScreen(
                 Box(modifier = Modifier.fillMaxWidth()) {
                     LazyColumn {
                         items(myAlarms.value, key = { it.id }) {
-                            alarmCard(it, homeViewModel,onNavigateToAlarmUpdate)
+                            alarmCard(it, homeViewModel, onNavigateToAlarmUpdate)
                         }
                     }
                 }

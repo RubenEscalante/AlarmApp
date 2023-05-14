@@ -5,6 +5,7 @@ import com.udb.alarmapp.data.local.model.AlarmDateModel
 import com.udb.alarmapp.data.local.model.AlarmMedicineModel
 import com.udb.alarmapp.data.local.model.AlarmModel
 import com.udb.alarmapp.data.local.model.CompleteAlarmModel
+import com.udb.alarmapp.data.local.model.DataListQueryModel
 import com.udb.alarmapp.data.local.model.MedicineModel
 import com.udb.alarmapp.data.local.room.dao.AlarmDao
 import com.udb.alarmapp.data.local.room.dao.AlarmDateDao
@@ -26,6 +27,7 @@ class AlarmRepository @Inject constructor(
     private val alarmDateDao: AlarmDateDao,
     private val alarmMedicineDao: AlarmMedicineDao
 ) {
+    val dateList: Flow<List<DataListQueryModel>> = alarmDao.getDatesList()
 
     val alarms: Flow<List<CompleteAlarmModel>> =
         alarmDao.getAlarms().map { items ->
@@ -37,6 +39,7 @@ class AlarmRepository @Inject constructor(
                     firstAlarm.ampm,
                     firstAlarm.sunmoon,
                     firstAlarm.days,
+                    firstAlarm.active,
                     alarms.map {
                         MedicineModel(
                             id = it.medicineId,
@@ -103,6 +106,14 @@ class AlarmRepository @Inject constructor(
 
     }
 
+    @Transaction
+    suspend fun updateActive(
+        alarmId: String,
+        active: Boolean,
+    ) {
+        alarmDao.updateActive(alarmId, active)
+    }
+
     private fun formatTimeTo12HourFormat(timeString: String): String {
         val format24 = SimpleDateFormat("HH:mm", Locale.getDefault())
         val format12 = SimpleDateFormat("hh:mm", Locale.getDefault())
@@ -121,6 +132,7 @@ fun AlarmModel.toAlarmEntity(): AlarmEntity {
         hour = this.hour,
         ampm = this.ampm,
         sunmoon = this.sunmoon,
-        days = this.days
+        days = this.days,
+        active = this.active
     )
 }

@@ -15,5 +15,6 @@ data class AlarmEntity(
     var ampm: String,
     var sunmoon: String,
     var days: String,
+    var active: Boolean
 )
 

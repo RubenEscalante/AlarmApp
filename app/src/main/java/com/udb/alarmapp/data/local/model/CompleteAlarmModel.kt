@@ -6,5 +6,6 @@ data class CompleteAlarmModel(
     val ampm: String,
     val sunmoon: String,
     val days: String,
+    val active: Boolean,
     val medicines: List<MedicineModel>
 )

@@ -37,7 +37,7 @@ fun alarmCard(
     onNavigateToAlarmUpdate: (String) -> Unit
 ) {
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var isSwitched by rememberSaveable { mutableStateOf(false) }
+    var isSwitched by rememberSaveable { mutableStateOf(alarm.active) }
     Card(
         modifier = Modifier
             .padding(horizontal = 22.dp, vertical = 6.dp)
@@ -107,7 +107,8 @@ fun alarmCard(
                 Box(Modifier.padding(end = 16.dp, bottom = 20.dp)) {
                     CustomSwitch(
                         checked = isSwitched,
-                        onCheckedChange = { isSwitched = !isSwitched })
+                        onCheckedChange = { isSwitched = !isSwitched
+                        homeViewModel.updateActiveAlarm(alarmId = alarm.id, isSwitched)})
                 }
             }
             Column(
